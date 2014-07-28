@@ -11,11 +11,11 @@ MONTHLY=24
 YEARLY=10
 
 #define our backup directory here lets grab the server logs too!
-BACKUPLOGDIR=/home/terrariamod/backups/serverlog
-BACKUPWORLDDIR=/home/terrariamod/backups/world
-LOGDIR=/home/terrariamod/bin/tshock
-WORLDDIR=/home/terrariamod/bin/Terraria/Worlds
-WORLD=creeperiswatching.wld
+BACKUPLOGDIR=
+BACKUPWORLDDIR=
+LOGDIR=
+WORLDDIR=
+WORLD=
 DATE=(date + "%F")
 
 #Concurrency Check to make sure we only have one instance of the script running at a time (shamelessly plagurized that from Andrew Howard)
