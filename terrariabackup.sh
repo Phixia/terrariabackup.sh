@@ -84,13 +84,12 @@ fi
 if [ $( date +%d ) -eq 01  ]; then
   cp $BACKUPLOGDIR/daily/$DATE.log.gz $BACKUPLOGDIR/monthly/$DATE.log.gz
   /usr/sbin/tmpreaper -m $(( $MONTHLY * 31 ))d $BACKUPLOGDIR/monthly
+#If it is the first of the month and Jan do a yearly backup
+  if [ $( date +%m ) -eq 01  ]; then
+    cp $BACKUPLOGDIR/daily/$DATE.log.gz $BACKUPLOGDIR/yearly/$DATE.log.gz
+    /usr/sbin/tmpreaper -m $(( $YEARLY * 365 ))d $BACKUPLOGDIR/yearly
+  fi
 fi
-#Check if Jan
-if [ $( date +%m ) -eq 01  ]; then
-  cp $BACKUPLOGDIR/daily/$DATE.log.gz $BACKUPLOGDIR/yearly/$DATE.log.gz
-  /usr/sbin/tmpreaper -m $(( $YEARLY * 365 ))d $BACKUPLOGDIR/yearly
-fi
-
 #Restart server
 /etc/init.d/terrariaserver start
 
