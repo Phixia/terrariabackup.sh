@@ -17,6 +17,7 @@ LOGDIR=
 WORLDDIR=
 WORLD=
 DATE=$(date +"%F")
+SERVERLOG=
 
 #Concurrency Check to make sure we only have one instance of the script running at a time (shamelessly plagurized that from Andrew Howard)
 LOCK_FILE=/tmp/`basename $0`.lock
@@ -48,9 +49,7 @@ mkdir -p $BACKUPLOGDIR/daily \
 /etc/init.d/terraria-server stop
 
 #First we take care of the world file
-cp -a $WORLDDIR/$WORLD $WORLDDIR/$WORLD.$DATE
-gzip $WORLDDIR/$WORLD.$DATE
-mv $WORLDDIR/$WORLD.$DATE.gz $BACKUPWORLDDIR/daily/$WORLD.$DATE.gz 
+cat $WORLDDIR/$WORLD | gzip > $BACKUPWORLDDIR/daily/$WORLD.$DATE.gz 
 /usr/sbin/tmpreaper -m ${DAILY}d $BACKUPWORLDDIR/daily
 
 #Check if this is a Sunday run
@@ -63,17 +62,15 @@ fi
 if [ $( date +%d ) -eq 01  ]; then
   cp $BACKUPWORLDDIR/daily/$WORLD.$DATE.gz $BACKUPWORLDDIR/monthly/$WORLD.$DATE.gz
   /usr/sbin/tmpreaper -m $(( $MONTHLY * 31 ))d $BACKUPWORLDDIR/monthly
-fi
 
 #Check if Jan
-if [ $( date +%m ) -eq 01  ]; then
-  cp $BACKUPWORLDDIR/daily/$WORLD.$DATE.gz $BACKUPWORLDDIR/yearly/$WORLD.$DATE.gz
-  /usr/sbin/tmpreaper -m $(( $YEARLY * 365 ))d $BACKUPWORLDDIR/yearly
+    if [ $( date +%m ) -eq 01  ]; then
+      cp $BACKUPWORLDDIR/daily/$WORLD.$DATE.gz $BACKUPWORLDDIR/yearly/$WORLD.$DATE.gz
+      /usr/sbin/tmpreaper -m $(( $YEARLY * 365 ))d $BACKUPWORLDDIR/yearly
+    fi
 fi
-
-
 #repeat for the server logs @@@@@ CHECK THIS? @@@@@@@
-for x in `ls $LOGDIR | grep $DATE` ;do cp -a $x $DATE.log && gzip $DATE.log && mv $DATE.log.gz $BACKUPLOGDIR/daily/$DATE.log.gz; done 
+for x in `ls $LOGDIR | grep $DATE` ;do cat $x | gzip > $BACKUPLOGDIR/daily/$x.log.gz; done 
 /usr/sbin/tmpreaper -m ${DAILY}d $BACKUPLOGDIR/daily
 
 #Check if a Sunday run
@@ -91,6 +88,27 @@ if [ $( date +%d ) -eq 01  ]; then
     /usr/sbin/tmpreaper -m $(( $YEARLY * 365 ))d $BACKUPLOGDIR/yearly
   fi
 fi
+
+# Also need to get a copy of the ServerLog.txt
+cat $SERVERLOG | gzip > $BACKUPLOGDIR/daily/$DATE.ServerLog.gz && cat /dev/null> $SERVERLOG
+/usr/sbin/tmpreaper -m ${DAILY}d $BACKUPLOGDIR/daily
+
+if  [ $( date +%w ) -eq 0 ]; then
+  cp $BACKUPLOGDIR/daily/$DATE.ServerLog.gz $BACKUPLOGDIR/weekly/$DATE.ServerLog.gz
+  /usr/sbin/tmpreaper -m $(($WEEKLY * 7 ))d $BACKUPLOGDIR/weekly
+fi
+#Check if 1st of the Month
+if [ $( date +%d ) -eq 01  ]; then
+  cp $BACKUPLOGDIR/daily/$DATE.ServerLog.gz $BACKUPLOGDIR/monthly/$DATE.ServerLog.gz
+  /usr/sbin/tmpreaper -m $(( $MONTHLY * 31 ))d $BACKUPLOGDIR/monthly
+#If it is the first of the month and Jan do a yearly backup
+  if [ $( date +%m ) -eq 01  ]; then
+    cp $BACKUPLOGDIR/daily/$DATE.ServerLog.gz $BACKUPLOGDIR/yearly/$DATE.ServerLog.gz
+    /usr/sbin/tmpreaper -m $(( $YEARLY * 365 ))d $BACKUPLOGDIR/yearly
+  fi
+fi
+
+
 #Restart server
 /etc/init.d/terraria-server start
 
