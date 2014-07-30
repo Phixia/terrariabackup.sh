@@ -16,7 +16,7 @@ BACKUPWORLDDIR=
 LOGDIR=
 WORLDDIR=
 WORLD=
-DATE=(date +"%F")
+DATE=$(date +"%F")
 
 #Concurrency Check to make sure we only have one instance of the script running at a time (shamelessly plagurized that from Andrew Howard)
 LOCK_FILE=/tmp/`basename $0`.lock
@@ -45,11 +45,12 @@ mkdir -p $BACKUPLOGDIR/daily \
 
 
 #First we need to stop our server
-/etc/init.d/terrariaserver stop
+/etc/init.d/terraria-server stop
 
 #First we take care of the world file
-gzip $WORLDDIR/$WORLD
-mv $WORLDDIR/$WORLD.gz $BACKUPWORLDDIR/daily/$WORLD.$DATE.gz 
+cp -a $WORLDDIR/$WORLD $WORLDDIR/$WORLD.$DATE
+gzip $WORLDDIR/$WORLD.$DATE
+mv $WORLDDIR/$WORLD.$DATE.gz $BACKUPWORLDDIR/daily/$WORLD.$DATE.gz 
 /usr/sbin/tmpreaper -m ${DAILY}d $BACKUPWORLDDIR/daily
 
 #Check if this is a Sunday run
@@ -72,7 +73,7 @@ fi
 
 
 #repeat for the server logs @@@@@ CHECK THIS? @@@@@@@
-for x in `ls $LOGDIR | grep $DATE` ;do gzip $x && mv $x.gz $BACKUPLOGDIR/daily/$DATE.log.gz; done 
+for x in `ls $LOGDIR | grep $DATE` ;do cp -a $x $DATE.log && gzip $DATE.log && mv $DATE.log.gz $BACKUPLOGDIR/daily/$DATE.log.gz; done 
 /usr/sbin/tmpreaper -m ${DAILY}d $BACKUPLOGDIR/daily
 
 #Check if a Sunday run
@@ -91,6 +92,6 @@ if [ $( date +%d ) -eq 01  ]; then
   fi
 fi
 #Restart server
-/etc/init.d/terrariaserver start
+/etc/init.d/terraria-server start
 
 exit
