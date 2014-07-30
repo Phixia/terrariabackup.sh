@@ -16,7 +16,7 @@ BACKUPWORLDDIR=
 LOGDIR=
 WORLDDIR=
 WORLD=
-DATE=(date + "%F")
+DATE=(date +"%F")
 
 #Concurrency Check to make sure we only have one instance of the script running at a time (shamelessly plagurized that from Andrew Howard)
 LOCK_FILE=/tmp/`basename $0`.lock
